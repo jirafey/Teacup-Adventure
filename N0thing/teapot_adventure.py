@@ -2,6 +2,8 @@ from calendar import c
 import pygame, os, csv
 from sys import exit
 
+#COLLISIONS BROKE THE JUMPING AND THERE IS A BUG I GOTTA FIX
+
 pygame.init()
 running = True
 clock = pygame.time.Clock()
@@ -22,6 +24,7 @@ s_vel = 0
 current_lv = "tut1"
 
 state = "menu"
+on_ground = False
 
 spilled = False
 
@@ -103,9 +106,27 @@ class TileMap():
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
         return tiles
 
+    def collide(self, rect):
+        global on_ground
+        for tile in self.tiles:
+            if tile.rect.colliderect(rect):
+                if rect.right <= tile.rect.left:
+                    rect.right = tile.rect.left
+
+                elif rect.left >= tile.rect.right:
+                    rect.left = tile.rect.right
+
+                elif rect.bottom >= tile.rect.top:
+                    rect.y -= rect.bottom - tile.rect.top
+                    on_ground = True
+
+                elif rect.top <= tile.rect.bottom:
+                    rect.y = tile.rect.bottom
+            else:
+                on_ground = False
+
 tut_lv1 = TileMap(os.path.join("Assets", "worlds", "tutlv_1.csv"), os.path.join("Assets", "tile", "ground_tileset.png"))
 tut_lv2 = TileMap(os.path.join("Assets", "worlds", "tutlv_2.csv"), os.path.join("Assets", "tile", "ground_tileset.png"))
-
 
 def to_next_level(current, rect):
     pass
@@ -126,7 +147,7 @@ while running:
             #jumping and making the spill
             if state == "game":
                 if e.key == pygame.K_SPACE or e.key == pygame.K_w:
-                    if player_rect.y >= 980 and spilled == False:
+                    if on_ground and spilled == False:
                         jump(jump_force)
                         spilled = True
                         s_gravity = -(spill_force)
@@ -192,10 +213,7 @@ while running:
 
        
         tut_lv1.draw_map(screen)
-        for tile in tut_lv1.tiles:
-            if player_rect.colliderect(tile.rect):
-                pass
-                
+        tut_lv1.collide(player_rect)
         
         #some more stuff to the spill
         if spilled:
