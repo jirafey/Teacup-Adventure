@@ -2,8 +2,6 @@ from calendar import c
 import pygame, os, csv
 from sys import exit
 
-#COLLISIONS BROKE THE JUMPING AND THERE IS A BUG I GOTTA FIX
-
 pygame.init()
 running = True
 clock = pygame.time.Clock()
@@ -21,10 +19,11 @@ spill_force = 35
 s_gravity = 10
 s_vel = 0
 
+ground_y = 1080
+
 current_lv = "tut1"
 
 state = "menu"
-on_ground = False
 
 spilled = False
 
@@ -51,6 +50,7 @@ def move(vel):
         player_rect.x -= vel
 
 def jump(force):
+    player_rect.y -= 1
     global gravity
     gravity = -(force)
 
@@ -107,7 +107,7 @@ class TileMap():
         return tiles
 
     def collide(self, rect):
-        global on_ground
+        global ground_y
         for tile in self.tiles:
             if tile.rect.colliderect(rect):
                 if rect.right <= tile.rect.left:
@@ -117,13 +117,14 @@ class TileMap():
                     rect.left = tile.rect.right
 
                 elif rect.bottom >= tile.rect.top:
+                    ground_y = tile.rect.top
                     rect.y -= rect.bottom - tile.rect.top
-                    on_ground = True
 
                 elif rect.top <= tile.rect.bottom:
                     rect.y = tile.rect.bottom
-            else:
-                on_ground = False
+
+                else:
+                    ground_y = 1080
 
 tut_lv1 = TileMap(os.path.join("Assets", "worlds", "tutlv_1.csv"), os.path.join("Assets", "tile", "ground_tileset.png"))
 tut_lv2 = TileMap(os.path.join("Assets", "worlds", "tutlv_2.csv"), os.path.join("Assets", "tile", "ground_tileset.png"))
@@ -137,17 +138,20 @@ while running:
         if e.type == pygame.QUIT:
             running = False
             exit()
+
         if e.type == pygame.MOUSEBUTTONDOWN and state == "menu":
             if start_rect.collidepoint(mouse_pos):
                 state = "game"
+
         if e.type == pygame.KEYDOWN:
             if e.key == pygame.K_ESCAPE:
                 running == False
                 exit()
+                    
             #jumping and making the spill
             if state == "game":
                 if e.key == pygame.K_SPACE or e.key == pygame.K_w:
-                    if on_ground and spilled == False:
+                    if player_rect.bottom >= ground_y and spilled == False:
                         jump(jump_force)
                         spilled = True
                         s_gravity = -(spill_force)
