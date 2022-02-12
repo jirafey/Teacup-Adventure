@@ -106,21 +106,24 @@ class TileMap():
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
         return tiles
 
-    def collide(self, rect):
+    def collidex(self, rect):
         global ground_y
         for tile in self.tiles:
             if tile.rect.colliderect(rect):
-                if rect.right <= tile.rect.left:
+                if rect.right >= tile.rect.left:
                     rect.right = tile.rect.left
 
-                elif rect.left >= tile.rect.right:
+                elif rect.left <= tile.rect.right:
                     rect.left = tile.rect.right
-
-                elif rect.bottom >= tile.rect.top:
+    def collidey(self, rect):
+        global ground_y
+        for tile in self.tiles:
+            if tile.rect.colliderect(rect):
+                if rect.bottom >= tile.rect.top and rect.bottom <= tile.rect.top + 10:
                     ground_y = tile.rect.top
                     rect.y -= rect.bottom - tile.rect.top
 
-                elif rect.top <= tile.rect.bottom:
+                elif rect.top <= tile.rect.bottom and rect.top >= tile.rect.top - 20:
                     rect.y = tile.rect.bottom
 
                 else:
@@ -217,7 +220,8 @@ while running:
 
        
         tut_lv1.draw_map(screen)
-        tut_lv1.collide(player_rect)
+        tut_lv1.collidey(player_rect)
+        tut_lv1.collidex(player_rect)
         
         #some more stuff to the spill
         if spilled:
