@@ -125,9 +125,16 @@ class TileMap():
 
                 elif rect.top <= tile.rect.bottom and rect.top >= tile.rect.top - 20:
                     rect.y = tile.rect.bottom
-
                 else:
                     ground_y = 1080
+
+    def tea_collide(self):
+        global ground_y, state, spilled
+        for tile in self.tiles:
+            if tile.rect.colliderect(tea_rect):
+                if tea_rect.bottom >= ground_y:
+                    spilled = False
+                    state = "dead"
 
 tut_lv1 = TileMap(os.path.join("Assets", "worlds", "tutlv_1.csv"), os.path.join("Assets", "tile", "ground_tileset.png"))
 tut_lv2 = TileMap(os.path.join("Assets", "worlds", "tutlv_2.csv"), os.path.join("Assets", "tile", "ground_tileset.png"))
@@ -188,15 +195,13 @@ while running:
         else:
             start_button_color = "pink"
         
-
     if state == "game":
         if player_rect.bottom > 1080:            
-            player_rect.bottom = 1080
+            state = "dead"
         if player_rect.left <= 0:
             player_rect.left = 0
         if player_rect.right > 1920:
-            player_rect.right = 1920
-            
+            player_rect.right = 1920 
                     
         if spilled == False:
             tea_rect.x, tea_rect.y = player_rect.left + 30, player_rect.top - 30
@@ -216,15 +221,11 @@ while running:
         move(velocity)
         player_rect.y += gravity
 
-        screen.fill("white")
-
-       
-        tut_lv1.draw_map(screen)
-        tut_lv1.collidey(player_rect)
-        tut_lv1.collidex(player_rect)
+        screen.fill("white")    
         
         #some more stuff to the spill
         if spilled:
+            tut_lv1.tea_collide()
             if s_vel > 0:
                 s_vel -= 0.005
             if s_vel < 0:
@@ -235,13 +236,12 @@ while running:
             if tea_rect.colliderect(player_rect):
                 s_vel = 0
                 spilled = False
-            if tea_rect.y >= 1080:
-                tea_rect.y = 1080
-                state = "dead"
 
+        tut_lv1.draw_map(screen)
+        tut_lv1.collidey(player_rect)
+        tut_lv1.collidex(player_rect)
 
         pygame.draw.rect(screen, "black", player_rect)
-
 
     if state == "dead":
         screen.blit(die_txt, (960 - die_txt.get_width() / 2, 540 - die_txt.get_height() / 2))
