@@ -29,10 +29,15 @@ spilled = False
 
 tea_rect = pygame.rect.Rect(player_rect.left + 30, player_rect.top - 30, 40, 30)
 
+house_rect = pygame.rect.Rect(100, 320, 64, 64)
+
 font = pygame.font.Font(os.path.join("Assets", "font.otf"), 128)
 font1 = pygame.font.Font(os.path.join("Assets", "font.otf"), 64)
 die_txt = font.render("You Died!", False, "Black")
 die_txt1 = font1.render("Press Q to respawn", False, "Black")
+
+win_txt = font.render("Level Completed!", False, "black")
+win_txt1 = font1.render("Press M to go to the menu", False, "black")
 
 menu_txt = pygame.transform.rotate(font.render("Teapot Adventure", False, "Black"), -4)
 start_txt = font1.render("START", False, "black")
@@ -123,7 +128,7 @@ class TileMap():
                     ground_y = tile.rect.top
                     rect.y -= rect.bottom - tile.rect.top
 
-                elif rect.top <= tile.rect.bottom and rect.top >= tile.rect.top - 20:
+                elif rect.top <= tile.rect.bottom and rect.top >= tile.rect.top - 10:
                     rect.y = tile.rect.bottom
                 else:
                     ground_y = 1080
@@ -138,9 +143,41 @@ class TileMap():
 
 tut_lv1 = TileMap(os.path.join("Assets", "worlds", "tutlv_1.csv"), os.path.join("Assets", "tile", "ground_tileset.png"))
 tut_lv2 = TileMap(os.path.join("Assets", "worlds", "tutlv_2.csv"), os.path.join("Assets", "tile", "ground_tileset.png"))
+tut_lv3 = TileMap(os.path.join("Assets", "worlds", "tutlv_3.csv"), os.path.join("Assets", "tile", "ground_tileset.png"))
 
-def to_next_level(current, rect):
-    pass
+def to_next_level():
+    global current_lv, spilled, s_vel
+    if player_rect.left <= 0:
+        if current_lv == "tut1":
+            player_rect.left = 0
+
+        elif current_lv == "tut2":
+            current_lv = "tut1"
+            player_rect.right = 1870
+            spilled = False
+            s_vel = 0
+
+        elif current_lv == "tut3":
+            current_lv = "tut2"
+            player_rect.right = 1870
+            spilled = False
+            s_vel = 0
+
+    elif player_rect.right >= 1920:
+        if current_lv == "tut1":
+            current_lv = "tut2"
+            player_rect.left = 50
+            spilled = False    
+            s_vel = 0   
+
+        elif current_lv == "tut2":
+            current_lv = "tut3"
+            player_rect.left = 50
+            spilled = False
+            s_vel = 0
+        
+        elif current_lv == "tut3":
+            player_rect.right = 1920
 
 #Actual gameloop
 while running:
@@ -173,12 +210,22 @@ while running:
             #respawn
             if state == "dead":
                 if e.key == pygame.K_q:
-                    player_rect.x = 0
-                    player_rect.y = 40
+                    if current_lv == "tut1" or current_lv == "tut2" or current_lv == "tut3":
+                        current_lv = "tut1"
+                        player_rect.x = 0
+                        player_rect.y = 40
                     spilled = False
                     tea_rect.x, tea_rect.y = player_rect.left + 30, player_rect.top - 30
                     s_vel = 0
                     state = "game"
+            
+            if state == "win":
+                if e.key == pygame.K_m:
+                    state = "menu"
+                    current_lv = "tut1"
+                    spilled = False
+                    player_rect.x = 0
+                    player_rect.y = 40
 
     keys = pygame.key.get_pressed()
     mouse_pos = pygame.mouse.get_pos()
@@ -196,12 +243,12 @@ while running:
             start_button_color = "pink"
         
     if state == "game":
-        if player_rect.bottom > 1080:            
+        if player_rect.bottom >= 1080:            
             state = "dead"
         if player_rect.left <= 0:
-            player_rect.left = 0
-        if player_rect.right > 1920:
-            player_rect.right = 1920 
+            to_next_level()
+        elif player_rect.right >= 1920:
+            to_next_level()
                     
         if spilled == False:
             tea_rect.x, tea_rect.y = player_rect.left + 30, player_rect.top - 30
@@ -221,11 +268,34 @@ while running:
         move(velocity)
         player_rect.y += gravity
 
-        screen.fill("white")    
+        screen.fill("white")  
+
+        if current_lv == "tut1":
+            tut_lv1.draw_map(screen)
+            tut_lv1.collidey(player_rect)
+            tut_lv1.collidex(player_rect)  
+        if current_lv == "tut2":
+            tut_lv2.draw_map(screen)
+            tut_lv2.collidey(player_rect)
+            tut_lv2.collidex(player_rect) 
+        if current_lv == "tut3":
+            tut_lv3.draw_map(screen)
+            tut_lv3.collidey(player_rect)
+            tut_lv3.collidex(player_rect) 
+            pygame.draw.rect(screen, "Blue", house_rect)
+            if player_rect.colliderect(house_rect):
+                state = "win"
         
         #some more stuff to the spill
         if spilled:
-            tut_lv1.tea_collide()
+            if current_lv == "tut1":
+                tut_lv1.tea_collide()
+            elif current_lv == "tut2":
+                tut_lv2.tea_collide()
+            elif current_lv == "tut3":
+                tut_lv3.tea_collide()
+            if tea_rect.y >= 1080:
+                state = "dead"
             if s_vel > 0:
                 s_vel -= 0.005
             if s_vel < 0:
@@ -237,11 +307,11 @@ while running:
                 s_vel = 0
                 spilled = False
 
-        tut_lv1.draw_map(screen)
-        tut_lv1.collidey(player_rect)
-        tut_lv1.collidex(player_rect)
-
         pygame.draw.rect(screen, "black", player_rect)
+    
+    if state == "win":
+        screen.blit(win_txt, (960 - win_txt.get_width() / 2, 540 - win_txt.get_height() / 2))
+        screen.blit(win_txt1, (960 - win_txt1.get_width() / 2, 800))
 
     if state == "dead":
         screen.blit(die_txt, (960 - die_txt.get_width() / 2, 540 - die_txt.get_height() / 2))
