@@ -42,6 +42,19 @@ win_txt1 = font1.render("Press M to go to the menu", False, "black")
 menu_txt = pygame.transform.rotate(font.render("Teapot Adventure", False, "Black"), -4)
 start_txt = font1.render("START", False, "black")
 
+lv_select_txt = font.render("SELECT LEVEL", False, "black")
+
+tut_txt = font1.render("Move with A and D", False, "black")
+tut_txt1 = font1.render("Jump with W/SPACE", False, "black")
+tut_txt2 = font1.render("Catch the spilled tea before you can jump again!", False, "black")
+tut_txt3 = font1.render("Be careful, if you fall you die", False, "black")
+tut_txt4 = font1.render("Get to the house to finish the level", False, "black")
+
+tutlv_txt = font1.render("Tutorial", False, "black")
+tutlv_rect = pygame.rect.Rect(200, 200, 100, 100)
+
+tutlv_button_color = "pink"
+
 start_rect = pygame.rect.Rect(960 - start_txt.get_width() / 2, 760, start_txt.get_width() + 40, start_txt.get_height() + 20)
 
 start_button_color = "pink"
@@ -118,7 +131,7 @@ class TileMap():
                 if rect.right >= tile.rect.left:
                     rect.right = tile.rect.left
 
-                elif rect.left <= tile.rect.right:
+                elif rect.left <= tile.rect.righ:
                     rect.left = tile.rect.right
     def collidey(self, rect):
         global ground_y
@@ -188,6 +201,11 @@ while running:
 
         if e.type == pygame.MOUSEBUTTONDOWN and state == "menu":
             if start_rect.collidepoint(mouse_pos):
+                state = "lv_select"
+
+        if e.type == pygame.MOUSEBUTTONDOWN and state == "lv_select":
+            if tutlv_rect.collidepoint(mouse_pos):
+                current_lv = "tut1"
                 state = "game"
 
         if e.type == pygame.KEYDOWN:
@@ -241,6 +259,16 @@ while running:
                 
         else:
             start_button_color = "pink"
+    
+    if state == "lv_select":
+        screen.fill("lightblue")
+        if tutlv_rect.collidepoint(mouse_pos):
+            tutlv_button_color = "red"
+        else:
+            tutlv_button_color = "pink"
+        pygame.draw.rect(screen, tutlv_button_color, tutlv_rect)
+        screen.blit(tutlv_txt, (250 - tutlv_txt.get_width() / 2, 305))
+        screen.blit(lv_select_txt, (960 - lv_select_txt.get_width() / 2 ,5))
         
     if state == "game":
         if player_rect.bottom >= 1080:            
@@ -274,15 +302,24 @@ while running:
             tut_lv1.draw_map(screen)
             tut_lv1.collidey(player_rect)
             tut_lv1.collidex(player_rect)  
+            if player_rect.x >= 550:
+                screen.blit(tut_txt1, (550, 450))
+                screen.blit(tut_txt2, (870 - tut_txt2.get_width() / 2, 540))
+            else:
+                screen.blit(tut_txt, (50, 670))
         if current_lv == "tut2":
             tut_lv2.draw_map(screen)
             tut_lv2.collidey(player_rect)
             tut_lv2.collidex(player_rect) 
+            if player_rect.x <= 850:
+                screen.blit(tut_txt3, (130, 670))
         if current_lv == "tut3":
             tut_lv3.draw_map(screen)
             tut_lv3.collidey(player_rect)
             tut_lv3.collidex(player_rect) 
             pygame.draw.rect(screen, "Blue", house_rect)
+            if player_rect.x <= 900 and player_rect.y >= 450:
+                screen.blit(tut_txt4, ( 120, 640))
             if player_rect.colliderect(house_rect):
                 state = "win"
         
