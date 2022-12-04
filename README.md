@@ -1,2 +1,2 @@
-# teapot_adventure
-A game jam entry for trijam #156
+# A game jam entry for trijam #156
+
