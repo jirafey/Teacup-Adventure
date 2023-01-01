@@ -1,3 +1,5 @@
+# This is the entire code for Teacup Adventure.
+
 from calendar import c
 import pygame, os, csv
 from pygame import mixer
@@ -8,7 +10,7 @@ running = True
 clock = pygame.time.Clock()
 
 screen = pygame.display.set_mode((1920, 1080))
-pygame.display.set_caption("Teapot Adventure")
+pygame.display.set_caption("Teacup Adventure")
 
 # Jirafey: Background Sound
 
